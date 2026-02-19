@@ -1,12 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
+import LoadingScreen from './components/LoadingScreen';
 import TaskBoard from './pages/TaskBoard';
 import CreateTask from './pages/CreateTask';
 import TaskDetails from './pages/TaskDetails';
 import Dashboard from './pages/Dashboard';
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    // show creative loading animation for 5 seconds
+    return <LoadingScreen />;
+  }
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
