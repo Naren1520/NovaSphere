@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '../WalletProvider';
-import { BountyBoard, type Task, TaskStatus } from '../frontend-integration';
+import { BountyBoard, type Task, type TaskStatusType, TaskStatus } from '../frontend-integration';
 import contractInfo from '../contract.json';
 import toast from 'react-hot-toast';
 import algosdk from 'algosdk';
@@ -46,7 +46,8 @@ export default function TaskDetails() {
       const signedTxns = await signTransactions([encodedTxn], [0]);
       
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       toast.success('Task claimed successfully!');
@@ -72,7 +73,8 @@ export default function TaskDetails() {
       const signedTxns = await signTransactions([encodedTxn], [0]);
       
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       toast.success('Work submitted successfully!');
@@ -96,7 +98,8 @@ export default function TaskDetails() {
       const signedTxns = await signTransactions([encodedTxn], [0]);
       
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       toast.success('Task approved! Payment released.');
@@ -119,7 +122,8 @@ export default function TaskDetails() {
       const signedTxns = await signTransactions([encodedTxn], [0]);
       
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       toast.success('Work rejected. Freelancer can resubmit.');
@@ -142,7 +146,8 @@ export default function TaskDetails() {
       const signedTxns = await signTransactions([encodedTxn], [0]);
       
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       toast.success('Task refunded successfully!');
@@ -155,7 +160,7 @@ export default function TaskDetails() {
     }
   };
 
-  const getStatusColor = (status: TaskStatus) => {
+  const getStatusColor = (status: TaskStatusType) => {
     switch (status) {
       case TaskStatus.OPEN: return 'bg-green-100 text-green-800';
       case TaskStatus.CLAIMED: return 'bg-blue-100 text-blue-800';

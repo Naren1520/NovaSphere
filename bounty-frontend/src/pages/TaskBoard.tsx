@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BountyBoard, type Task, TaskStatus } from '../frontend-integration';
+import { BountyBoard, type Task, type TaskStatusType, TaskStatus } from '../frontend-integration';
 import contractInfo from '../contract.json';
 import TaskCard from '../components/TaskCard';
 import toast from 'react-hot-toast';
@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
+  const [filter, setFilter] = useState<TaskStatusType | 'all'>('all');
   const bountyBoard = new BountyBoard(contractInfo);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function TaskBoard() {
             <p className="mt-2 text-gray-600">
               {filter === 'all' 
                 ? 'Be the first to create a task!' 
-                : `No ${BountyBoard.getStatusLabel(filter as TaskStatus).toLowerCase()} tasks available.`
+                : `No ${BountyBoard.getStatusLabel(filter as TaskStatusType).toLowerCase()} tasks available.`
               }
             </p>
           </div>

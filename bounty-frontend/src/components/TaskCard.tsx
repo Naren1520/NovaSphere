@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { type Task, TaskStatus, BountyBoard } from '../frontend-integration';
+import { type Task, type TaskStatusType, TaskStatus, BountyBoard } from '../frontend-integration';
 import { formatDistance } from 'date-fns';
 
 interface TaskCardProps {
@@ -7,7 +7,7 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task }: TaskCardProps) {
-  const getStatusColor = (status: TaskStatus) => {
+  const getStatusColor = (status: TaskStatusType) => {
     switch (status) {
       case TaskStatus.OPEN:
         return 'bg-green-100 text-green-800';
@@ -26,7 +26,7 @@ export default function TaskCard({ task }: TaskCardProps) {
     }
   };
 
-  const getStatusLabel = (status: TaskStatus) => {
+  const getStatusLabel = (status: TaskStatusType) => {
     return BountyBoard.getStatusLabel(status);
   };
 

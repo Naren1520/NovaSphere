@@ -2,7 +2,7 @@ import { useWallet } from '../WalletProvider';
 import { Link } from 'react-router-dom';
 
 export default function Header() {
-  const { activeAddress, isConnected, connect, disconnect } = useWallet();
+  const { activeAddress, connect, disconnect } = useWallet();
 
   const handleConnect = async () => {
     try {

@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { PeraWalletConnect } from '@perawallet/connect';
+import algosdk from 'algosdk';
 
 interface WalletContextValue {
   peraWallet: PeraWalletConnect | null;
@@ -80,7 +81,11 @@ export default function WalletProvider({ children }: WalletProviderProps) {
     }
 
     try {
-      const signedTxns = await peraWallet.signTransaction([txnGroup.map((txn, index) => ({
+      // Decode transactions for Pera Wallet
+      const decodedTxns = txnGroup.map(txn => algosdk.decodeUnsignedTransaction(txn));
+      
+      // Pera Wallet expects an array of transaction groups (SignerTransaction[][])
+      const signedTxns = await peraWallet.signTransaction([decodedTxns.map((txn, index) => ({
         txn,
         signers: indexesToSign && indexesToSign.includes(index) ? [activeAddress] : []
       }))]);

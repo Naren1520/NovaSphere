@@ -61,7 +61,8 @@ export default function CreateTask() {
 
       // Send to network
       const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '');
-      const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+      const response = await algodClient.sendRawTransaction(signedTxns).do();
+      const txId = response.txid;
 
       // Wait for confirmation
       await algosdk.waitForConfirmation(algodClient, txId, 4);

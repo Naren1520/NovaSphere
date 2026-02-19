@@ -1,14 +1,17 @@
 import algosdk from 'algosdk';
+import { Buffer } from 'buffer';
 
-// Task Status Enum
-export enum TaskStatus {
-  OPEN = 0,
-  CLAIMED = 1,
-  SUBMITTED = 2,
-  APPROVED = 3,
-  REJECTED = 4,
-  REFUNDED = 5
-}
+// Task Status as const object (not enum due to erasableSyntaxOnly)
+export const TaskStatus = {
+  OPEN: 0,
+  CLAIMED: 1,
+  SUBMITTED: 2,
+  APPROVED: 3,
+  REJECTED: 4,
+  REFUNDED: 5
+} as const;
+
+export type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus];
 
 // Task Interface
 interface TaskInterface {
@@ -17,7 +20,7 @@ interface TaskInterface {
   freelancer: string;
   amount: bigint;
   deadline: bigint;
-  status: TaskStatus;
+  status: TaskStatusType;
   title: string;
   description: string;
   proofHash: string;
@@ -91,7 +94,7 @@ export class BountyBoard {
     offset += 8;
 
     // Status (1 byte)
-    const status = boxData[offset] as TaskStatus;
+    const status = boxData[offset] as TaskStatusType;
     offset += 1;
 
     // Title length (2 bytes)
@@ -145,9 +148,10 @@ export class BountyBoard {
       const taskCounterKey = Buffer.from('task_counter').toString('base64');
       
       let taskCounter = 0;
-      for (const kv of globalState.params['global-state']) {
-        if (kv.key === taskCounterKey) {
-          taskCounter = kv.value.uint;
+      for (const kv of globalState.params.globalState || []) {
+        // kv.key is base64 encoded string from algod API
+        if ((kv.key as any) === taskCounterKey) {
+          taskCounter = Number(kv.value.uint);
           break;
         }
       }
@@ -168,9 +172,21 @@ export class BountyBoard {
   }
 
   // Get tasks by status
-  async getTasksByStatus(status: TaskStatus): Promise<Task[]> {
+  async getTasksByStatus(status: TaskStatusType): Promise<Task[]> {
     const allTasks = await this.getAllTasks();
     return allTasks.filter(task => task.status === status);
+  }
+
+  // Get tasks by client
+  async getTasksByClient(clientAddress: string): Promise<Task[]> {
+    const allTasks = await this.getAllTasks();
+    return allTasks.filter(task => task.client === clientAddress);
+  }
+
+  // Get tasks by freelancer
+  async getTasksByFreelancer(freelancerAddress: string): Promise<Task[]> {
+    const allTasks = await this.getAllTasks();
+    return allTasks.filter(task => task.freelancer === freelancerAddress);
   }
 
   // Create task transaction (requires grouped payment)
@@ -186,8 +202,8 @@ export class BountyBoard {
 
     // Payment transaction
     const paymentTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: sender,
-      to: this.appAddress,
+      sender: sender,
+      receiver: this.appAddress,
       amount: amount * 1_000_000,
       suggestedParams: params
     });
@@ -201,7 +217,7 @@ export class BountyBoard {
     ];
 
     const appCallTxn = algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
@@ -224,7 +240,7 @@ export class BountyBoard {
     ];
 
     return algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
@@ -242,7 +258,7 @@ export class BountyBoard {
     ];
 
     return algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
@@ -259,7 +275,7 @@ export class BountyBoard {
     ];
 
     return algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
@@ -276,7 +292,7 @@ export class BountyBoard {
     ];
 
     return algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
@@ -293,16 +309,16 @@ export class BountyBoard {
     ];
 
     return algosdk.makeApplicationNoOpTxnFromObject({
-      from: sender,
+      sender: sender,
       appIndex: this.appId,
       appArgs,
       suggestedParams: params
     });
   }
 
-  // Utility: Convert microAlgos to Algos
-  static microToAlgo(microAlgos: bigint): string {
-    return (Number(microAlgos) / 1_000_000).toFixed(2);
+  // Utility: Convert microAlgos to Algos (returns number)
+  static microToAlgo(microAlgos: bigint): number {
+    return Number(microAlgos) / 1_000_000;
   }
 
   // Utility: Format deadline
@@ -310,8 +326,13 @@ export class BountyBoard {
     return new Date(Number(timestamp) * 1000).toLocaleDateString();
   }
 
+  // Utility: Check if deadline has passed
+  static isDeadlinePassed(timestamp: bigint): boolean {
+    return Date.now() > Number(timestamp) * 1000;
+  }
+
   // Utility: Get status label
-  static getStatusLabel(status: TaskStatus): string {
+  static getStatusLabel(status: TaskStatusType): string {
     const labels = {
       [TaskStatus.OPEN]: 'Open',
       [TaskStatus.CLAIMED]: 'Claimed',
